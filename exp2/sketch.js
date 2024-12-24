@@ -13,6 +13,10 @@ let textInput;
 let bgImage = null;
 let bgVideo = null;
 let isVideo = false;
+let camera = null;
+let isCameraOn = false;
+let cameraButton;
+let cameraSelect;
 let textColor;
 let bgColor;
 
@@ -25,8 +29,13 @@ function setup() {
   canvas.parent('canvas-container');
   pg = createGraphics(400, 400);
   
-  // Initialize text input
+  // Initialize UI elements
   textInput = document.getElementById('textInput');
+  cameraButton = document.getElementById('cameraButton');
+  cameraSelect = document.getElementById('cameraSelect');
+  
+  // Initialize camera controls
+  setupCameraControls();
   
   // Initialize sliders
   initSliders();
@@ -51,9 +60,89 @@ function setup() {
   });
 }
 
+async function setupCameraControls() {
+  // List available cameras
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+    
+    videoDevices.forEach(device => {
+      const option = document.createElement('option');
+      option.value = device.deviceId;
+      option.text = device.label || `Camera ${cameraSelect.length + 1}`;
+      cameraSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error('Error listing cameras:', err);
+  }
+
+  // Camera button click handler
+  cameraButton.addEventListener('click', toggleCamera);
+  
+  // Camera selection change handler
+  cameraSelect.addEventListener('change', async () => {
+    if (isCameraOn) {
+      await stopCamera();
+      await startCamera();
+    }
+  });
+}
+
+async function startCamera() {
+  try {
+    const constraints = {
+      video: {
+        deviceId: cameraSelect.value ? { exact: cameraSelect.value } : undefined
+      }
+    };
+    
+    // Stop any existing video or camera
+    if (bgVideo) {
+      bgVideo.remove();
+      bgVideo = null;
+    }
+    if (camera) {
+      camera.remove();
+    }
+    
+    camera = createCapture(constraints);
+    camera.hide();
+    isCameraOn = true;
+    cameraButton.textContent = 'Stop Camera';
+    
+    // Clear other media
+    bgImage = null;
+    isVideo = false;
+  } catch (err) {
+    console.error('Error starting camera:', err);
+  }
+}
+
+async function stopCamera() {
+  if (camera) {
+    camera.remove();
+    camera = null;
+  }
+  isCameraOn = false;
+  cameraButton.textContent = 'Start Camera';
+}
+
+async function toggleCamera() {
+  if (isCameraOn) {
+    await stopCamera();
+  } else {
+    await startCamera();
+  }
+}
+
 function handleMediaUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
+
+  // Stop camera if it's running
+  if (isCameraOn) {
+    stopCamera();
+  }
 
   // Clear previous media
   if (bgVideo) {
@@ -97,7 +186,13 @@ function draw() {
   pg.background(bgColor);
   
   // Draw background media if available
-  if (bgVideo && isVideo) {
+  if (camera && isCameraOn) {
+    pg.push();
+    pg.imageMode(CENTER);
+    let scale = Math.max(width / camera.width, height / camera.height);
+    pg.image(camera, width/2, height/2, camera.width * scale, camera.height * scale);
+    pg.pop();
+  } else if (bgVideo && isVideo) {
     pg.push();
     pg.imageMode(CENTER);
     let scale = Math.max(width / bgVideo.width, height / bgVideo.height);
