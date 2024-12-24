@@ -11,6 +11,8 @@ let font;
 let pg;
 let textInput;
 let bgImage = null;
+let bgVideo = null;
+let isVideo = false;
 
 // Store slider elements
 let sliders = {};
@@ -27,14 +29,44 @@ function setup() {
   // Initialize sliders
   initSliders();
   
-  // Add image input listener
-  const imageInput = document.getElementById('imageInput');
-  imageInput.addEventListener('change', handleImageUpload);
+  // Replace image input listener with media input listener
+  const mediaInput = document.getElementById('mediaInput');
+  mediaInput.addEventListener('change', handleMediaUpload);
 }
 
-function handleImageUpload(event) {
+function handleMediaUpload(event) {
   const file = event.target.files[0];
-  if (file) {
+  if (!file) return;
+
+  // Clear previous media
+  if (bgVideo) {
+    bgVideo.remove();
+    bgVideo = null;
+  }
+  bgImage = null;
+  isVideo = false;
+
+  if (file.type.startsWith('video/')) {
+    // Handle video upload
+    bgVideo = createVideo(URL.createObjectURL(file), () => {
+      bgVideo.loop();
+      bgVideo.hide(); // Hide the DOM element
+      isVideo = true;
+    });
+    
+    // Add loop control
+    const loopCheckbox = document.getElementById('loopVideo');
+    loopCheckbox.addEventListener('change', () => {
+      if (bgVideo) {
+        if (loopCheckbox.checked) {
+          bgVideo.loop();
+        } else {
+          bgVideo.noLoop();
+        }
+      }
+    });
+  } else if (file.type.startsWith('image/')) {
+    // Handle image upload
     loadImage(URL.createObjectURL(file), img => {
       bgImage = img;
     });
@@ -47,8 +79,14 @@ function draw() {
   // PGraphics
   pg.background(0);
   
-  // Draw background image if available
-  if (bgImage) {
+  // Draw background media if available
+  if (bgVideo && isVideo) {
+    pg.push();
+    pg.imageMode(CENTER);
+    let scale = Math.max(width / bgVideo.width, height / bgVideo.height);
+    pg.image(bgVideo, width/2, height/2, bgVideo.width * scale, bgVideo.height * scale);
+    pg.pop();
+  } else if (bgImage) {
     pg.push();
     pg.imageMode(CENTER);
     let scale = Math.max(width / bgImage.width, height / bgImage.height);
