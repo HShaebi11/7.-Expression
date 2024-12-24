@@ -24,10 +24,18 @@ let bgColor;
 let sliders = {};
 let sliderValues = {};
 
+function preload() {
+  // Load the variable font
+  font = loadFont('EXPOSE-varVF.ttf');
+}
+
 function setup() {
   const canvas = createCanvas(400, 400);
   canvas.parent('canvas-container');
   pg = createGraphics(400, 400);
+  
+  // Set the font for the graphics buffer
+  pg.textFont(font);
   
   // Initialize UI elements
   textInput = document.getElementById('textInput');
