@@ -67,54 +67,314 @@ function initTimeline() {
   timelineTrack = document.getElementById('timelineTrack');
   frameInput = document.getElementById('frameInput');
   
-  // Play/Pause button
+  // Create professional timeline layout
+  const timeline = document.createElement('div');
+  timeline.className = 'timeline-container';
+  timeline.innerHTML = `
+    <div class="timeline-header">
+      <div class="timeline-controls">
+        <button id="playPause">Play</button>
+        <button id="addKeyframe">Add Keyframe</button>
+        <div class="timeline-zoom">
+          <button id="zoomOut">-</button>
+          <button id="zoomIn">+</button>
+        </div>
+      </div>
+      <div class="timeline-info">
+        <span>Frame: <input type="number" id="frameInput" min="0" max="${totalFrames}" value="0"></span>
+        <span>Time: <span id="timeDisplay">0:00</span></span>
+      </div>
+    </div>
+    <div class="timeline-content">
+      <div class="timeline-layers">
+        <div class="layer-header">Properties</div>
+        ${Object.keys(sliderValues).map(prop => `
+          <div class="timeline-layer" data-property="${prop}">
+            <div class="layer-label">${prop}</div>
+            <div class="layer-track"></div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="timeline-track-container">
+        <div class="timeline-ruler">
+          <div class="ruler-markers"></div>
+          <div class="keyframe-track"></div>
+        </div>
+        <div id="timelineTrack" class="timeline-track">
+          <div id="playhead" class="playhead"></div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Insert timeline into bottom panel instead of after canvas
+  const oldTimeline = document.querySelector('.timeline-container');
+  if (oldTimeline) oldTimeline.replaceWith(timeline);
+  else document.querySelector('.bottom-panel').appendChild(timeline);
+
+  // Add CSS styles dynamically
+  const style = document.createElement('style');
+  style.textContent = `
+    .timeline-container {
+      background: #2a2a2a;
+      border-radius: 4px;
+      margin: 20px 0;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #3a3a3a;
+    }
+
+    .timeline-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .timeline-controls button {
+      background: #3a3a3a;
+      border: none;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .timeline-controls button:hover {
+      background: #4a4a4a;
+    }
+
+    .timeline-zoom {
+      display: flex;
+      gap: 5px;
+    }
+
+    .timeline-info {
+      color: #fff;
+      display: flex;
+      gap: 20px;
+    }
+
+    .timeline-info input {
+      background: #3a3a3a;
+      border: 1px solid #4a4a4a;
+      color: #fff;
+      width: 60px;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+
+    .timeline-content {
+      display: flex;
+      height: 200px;
+      margin-top: 10px;
+    }
+
+    .timeline-layers {
+      width: 150px;
+      border-right: 1px solid #3a3a3a;
+      overflow-y: auto;
+    }
+
+    .layer-header {
+      color: #fff;
+      padding: 5px 10px;
+      background: #3a3a3a;
+      position: sticky;
+      top: 0;
+    }
+
+    .timeline-layer {
+      display: flex;
+      height: 30px;
+      border-bottom: 1px solid #3a3a3a;
+    }
+
+    .layer-label {
+      color: #fff;
+      padding: 5px 10px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .timeline-track-container {
+      flex-grow: 1;
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .timeline-ruler {
+      height: 20px;
+      background: #3a3a3a;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .timeline-track {
+      position: relative;
+      height: calc(100% - 20px);
+      background: #2a2a2a;
+    }
+
+    .playhead {
+      position: absolute;
+      top: 0;
+      width: 2px;
+      height: 100%;
+      background: #ff0000;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .keyframe-marker {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #ffcc00;
+      border-radius: 2px;
+      transform: rotate(45deg);
+      margin: -5px;
+      cursor: pointer;
+      z-index: 1;
+    }
+
+    .keyframe-marker.selected {
+      background: #ff6600;
+      border: 2px solid #fff;
+      margin: -7px;
+    }
+
+    .time-marker {
+      position: absolute;
+      width: 1px;
+      height: 5px;
+      background: #4a4a4a;
+      bottom: 0;
+    }
+
+    .time-marker.major {
+      height: 10px;
+      background: #6a6a6a;
+    }
+
+    .time-marker.major::after {
+      content: attr(data-time);
+      position: absolute;
+      top: -15px;
+      left: 2px;
+      color: #999;
+      font-size: 10px;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Initialize existing event listeners
   document.getElementById('playPause').addEventListener('click', togglePlay);
-  
-  // Add keyframe button
   document.getElementById('addKeyframe').addEventListener('click', addKeyframe);
+  document.getElementById('zoomIn').addEventListener('click', () => {
+    timelineZoom = Math.min(timelineZoom * 1.5, 10);
+    updateTimelineView();
+  });
+  document.getElementById('zoomOut').addEventListener('click', () => {
+    timelineZoom = Math.max(timelineZoom / 1.5, 0.1);
+    updateTimelineView();
+  });
+
+  // Initialize time markers
+  updateTimeMarkers();
+
+  // Add click-to-add keyframe functionality for each layer track
+  document.querySelectorAll('.layer-track').forEach(track => {
+    track.addEventListener('click', (e) => {
+      if (e.target.classList.contains('layer-track')) {  // Only if clicking track, not existing keyframe
+        const rect = track.getBoundingClientRect();
+        const clickPosition = e.clientX - rect.left;
+        const frame = Math.round((clickPosition / rect.width) * totalFrames / timelineZoom);
+        const property = track.parentElement.dataset.property;
+        
+        // Add keyframe at clicked position with current value
+        addKeyframeAtPosition(property, frame, sliderValues[property]);
+      }
+    });
+  });
+
+  // Make timeline track draggable for scrubbing
+  const trackContainer = document.querySelector('.timeline-track-container');
+  trackContainer.addEventListener('mousedown', startScrubbing);
+  document.addEventListener('mousemove', updateScrubbing);
+  document.addEventListener('mouseup', stopScrubbing);
+
+  // Update click handler for keyframe placement
+  const keyframeTrack = document.querySelector('.keyframe-track');
+  keyframeTrack.addEventListener('click', (e) => {
+    if (e.target.classList.contains('keyframe-track')) {
+      const rect = keyframeTrack.getBoundingClientRect();
+      const clickPosition = e.clientX - rect.left;
+      const frame = Math.round((clickPosition / rect.width) * totalFrames / timelineZoom);
+      
+      // Add keyframe for all current values
+      addKeyframe(frame);
+    }
+  });
+}
+
+function updateTimeMarkers() {
+  const ruler = document.querySelector('.timeline-ruler');
+  ruler.innerHTML = '';
   
-  // Timeline click handling
-  timelineTrack.addEventListener('click', (e) => {
-    if (!isDraggingKeyframe) {  // Only update if not dragging
-      const rect = timelineTrack.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      currentFrame = Math.floor((x / rect.width) * totalFrames);
-      updatePlayhead();
+  const markerInterval = 10; // Frames between markers
+  const majorInterval = 30; // Frames between major markers
+
+  for (let i = 0; i <= totalFrames; i += markerInterval) {
+    const marker = document.createElement('div');
+    marker.className = 'time-marker';
+    if (i % majorInterval === 0) {
+      marker.classList.add('major');
+      marker.setAttribute('data-time', i);
     }
-  });
+    marker.style.left = `${(i / totalFrames) * 100}%`;
+    ruler.appendChild(marker);
+  }
+}
+
+function updateTimelineView() {
+  const trackContainer = document.querySelector('.timeline-track-container');
+  const track = document.getElementById('timelineTrack');
+  track.style.width = `${100 * timelineZoom}%`;
+  updateTimeMarkers();
+  updateKeyframeMarkers();
+}
+
+// Update the updateKeyframeMarkers function
+function updateKeyframeMarkers() {
+  const keyframeTrack = document.querySelector('.keyframe-track');
+  keyframeTrack.innerHTML = '';
   
-  // Frame input handling
-  frameInput.addEventListener('change', () => {
-    currentFrame = parseInt(frameInput.value);
-    updatePlayhead();
-  });
-
-  // Add keyframe drag handlers
-  const keyframeMarkers = document.getElementById('keyframeMarkers');
-  keyframeMarkers.addEventListener('mousedown', startDragKeyframe);
-  document.addEventListener('mousemove', dragKeyframe);
-  document.addEventListener('mouseup', stopDragKeyframe);
-
-  // Add shift-click support for multiple selection
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Delete' || e.key === 'Backspace') {
-      deleteSelectedKeyframes();
+  // Add keyframe markers to the ruler track
+  Object.keys(keyframes).forEach(frame => {
+    const marker = document.createElement('div');
+    marker.className = 'keyframe-marker';
+    if (selectedKeyframes.has(parseInt(frame))) {
+      marker.classList.add('selected');
     }
-  });
-
-  // Add keyframe position editor functionality
-  const keyframePosition = document.getElementById('keyframePosition');
-  const updateKeyframePosition = document.getElementById('updateKeyframePosition');
-  const keyframeEditor = document.getElementById('keyframeEditor');
-
-  updateKeyframePosition.addEventListener('click', () => {
-    updateSelectedKeyframePosition(parseInt(keyframePosition.value));
-  });
-
-  keyframePosition.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      updateSelectedKeyframePosition(parseInt(keyframePosition.value));
-    }
+    marker.style.left = `${(frame / totalFrames) * 100}%`;
+    marker.dataset.frame = frame;
+    
+    // Add tooltip with frame number and properties
+    const tooltipContent = Object.entries(keyframes[frame])
+      .map(([prop, value]) => `${prop}: ${value}`)
+      .join('\n');
+    marker.title = `Frame: ${frame}\n${tooltipContent}`;
+    
+    keyframeTrack.appendChild(marker);
   });
 }
 
@@ -132,33 +392,20 @@ function updatePlayhead() {
   const position = (currentFrame / totalFrames) * 100;
   playhead.style.left = `${position}%`;
   frameInput.value = currentFrame;
-}
-
-function updateKeyframeMarkers() {
-  const markers = document.getElementById('keyframeMarkers');
-  const keyframeEditor = document.getElementById('keyframeEditor');
-  const keyframePosition = document.getElementById('keyframePosition');
   
-  markers.innerHTML = '';
+  // Ensure playhead is visible when timeline is zoomed
+  const timelineTrack = document.getElementById('timelineTrack');
+  const trackRect = timelineTrack.getBoundingClientRect();
+  const playheadRect = playhead.getBoundingClientRect();
   
-  // Update keyframe editor visibility and value
-  if (selectedKeyframes.size === 1) {
-    keyframeEditor.style.display = 'flex';
-    keyframePosition.value = Array.from(selectedKeyframes)[0];
-  } else {
-    keyframeEditor.style.display = 'none';
+  if (playheadRect.left < trackRect.left || playheadRect.right > trackRect.right) {
+    const offset = playheadRect.left - trackRect.left;
+    timelineOffset = Math.max(
+      Math.min(0, -offset),
+      trackRect.width - timelineTrack.scrollWidth
+    );
+    updateTimelineView();
   }
-  
-  Object.keys(keyframes).forEach(frame => {
-    const marker = document.createElement('div');
-    marker.className = 'keyframe-marker';
-    if (selectedKeyframes.has(parseInt(frame))) {
-      marker.classList.add('selected');
-    }
-    marker.style.left = `${(frame / totalFrames) * 100}%`;
-    marker.dataset.frame = frame;
-    markers.appendChild(marker);
-  });
 }
 
 function draw() {
@@ -247,31 +494,25 @@ function startDragKeyframe(e) {
     e.preventDefault();
     isDraggingKeyframe = true;
     const frame = parseInt(e.target.dataset.frame);
+    const property = e.target.dataset.property;
     
-    // Handle multiple selection with shift key
     if (!e.shiftKey) {
-      // If not holding shift, clear previous selection unless clicking on already selected keyframe
       if (!selectedKeyframes.has(frame)) {
         selectedKeyframes.clear();
       }
     }
     
-    // Toggle selection of clicked keyframe
-    if (selectedKeyframes.has(frame)) {
-      if (e.shiftKey) {
-        selectedKeyframes.delete(frame);
-      }
-    } else {
-      selectedKeyframes.add(frame);
-    }
+    selectedKeyframes.add(frame);
     
-    // Store initial positions of all selected keyframes
     dragStartPositions.clear();
-    const rect = timelineTrack.getBoundingClientRect();
+    const rect = e.target.parentElement.getBoundingClientRect();
     dragStartX = e.clientX - rect.left;
     
     selectedKeyframes.forEach(frame => {
-      dragStartPositions.set(frame, frame);
+      dragStartPositions.set(frame, {
+        frame: frame,
+        property: property
+      });
     });
     
     updateKeyframeMarkers();
@@ -279,44 +520,42 @@ function startDragKeyframe(e) {
 }
 
 function dragKeyframe(e) {
-  if (isDraggingKeyframe && selectedKeyframes.size > 0) {
+  if (isDraggingKeyframe && dragStartPositions.size > 0) {
     e.preventDefault();
-    const rect = timelineTrack.getBoundingClientRect();
+    const track = e.target.closest('.layer-track');
+    if (!track) return;
+
+    const rect = track.getBoundingClientRect();
     const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const deltaFrames = Math.floor((x - dragStartX) / rect.width * totalFrames);
+    const newFrame = Math.round((x / rect.width) * totalFrames / timelineZoom);
     
-    // Calculate new positions for all selected keyframes
-    const newPositions = new Map();
-    let isValidMove = true;
+    const deltaFrames = newFrame - Math.round((dragStartX / rect.width) * totalFrames / timelineZoom);
     
-    dragStartPositions.forEach((startFrame, originalFrame) => {
-      const newFrame = Math.max(0, Math.min(startFrame + deltaFrames, totalFrames));
-      if (!selectedKeyframes.has(newFrame)) {
-        newPositions.set(originalFrame, newFrame);
-      } else {
-        isValidMove = false;
+    // Move all selected keyframes
+    const newKeyframes = {...keyframes};
+    dragStartPositions.forEach((data, originalFrame) => {
+      const targetFrame = Math.max(0, Math.min(data.frame + deltaFrames, totalFrames));
+      
+      // Only move if target frame is empty or is the original frame
+      if (!keyframes[targetFrame] || targetFrame === originalFrame) {
+        if (originalFrame !== targetFrame) {
+          // Move keyframe to new position
+          if (!newKeyframes[targetFrame]) {
+            newKeyframes[targetFrame] = {};
+          }
+          newKeyframes[targetFrame][data.property] = keyframes[originalFrame][data.property];
+          
+          // Remove from old position
+          delete newKeyframes[originalFrame][data.property];
+          if (Object.keys(newKeyframes[originalFrame]).length === 0) {
+            delete newKeyframes[originalFrame];
+          }
+        }
       }
     });
     
-    // Apply movement if valid
-    if (isValidMove) {
-      const newKeyframes = {};
-      
-      // First, copy all non-selected keyframes
-      Object.entries(keyframes).forEach(([frame, values]) => {
-        if (!selectedKeyframes.has(parseInt(frame))) {
-          newKeyframes[frame] = values;
-        }
-      });
-      
-      // Then move selected keyframes to new positions
-      newPositions.forEach((newFrame, originalFrame) => {
-        newKeyframes[newFrame] = keyframes[originalFrame];
-      });
-      
-      keyframes = newKeyframes;
-      updateKeyframeMarkers();
-    }
+    keyframes = newKeyframes;
+    updateKeyframeMarkers();
   }
 }
 
@@ -413,4 +652,66 @@ function updateSelectedKeyframePosition(newPosition) {
       alert('Position already occupied by another keyframe!');
     }
   }
+}
+
+function showKeyframeEditor(frame) {
+  const values = keyframes[frame];
+  const editor = document.getElementById('keyframeEditor');
+  
+  editor.innerHTML = `
+    <h3>Edit Keyframe at Frame ${frame}</h3>
+    ${Object.entries(values).map(([prop, value]) => `
+      <div class="editor-row">
+        <label>${prop}</label>
+        <input type="number" 
+               data-prop="${prop}" 
+               value="${value}" 
+               step="0.1"
+               onchange="updateKeyframeValue(${frame}, '${prop}', this.value)">
+      </div>
+    `).join('')}
+    <div class="editor-row">
+      <label>Easing</label>
+      <select onchange="updateKeyframeEasing(${frame}, this.value)">
+        ${Object.keys(EasingFunctions).map(ease => 
+          `<option>${ease}</option>`
+        ).join('')}
+      </select>
+    </div>
+  `;
+}
+
+let isScrubbing = false;
+
+function startScrubbing(e) {
+  if (e.target.classList.contains('keyframe-marker')) return;
+  isScrubbing = true;
+  updateTimeFromMouse(e);
+}
+
+function updateScrubbing(e) {
+  if (isScrubbing) {
+    updateTimeFromMouse(e);
+  }
+}
+
+function stopScrubbing() {
+  isScrubbing = false;
+}
+
+function updateTimeFromMouse(e) {
+  const trackContainer = document.querySelector('.timeline-track-container');
+  const rect = trackContainer.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  currentFrame = Math.round((x / rect.width) * totalFrames / timelineZoom);
+  currentFrame = Math.max(0, Math.min(currentFrame, totalFrames));
+  updatePlayhead();
+}
+
+function addKeyframeAtPosition(property, frame, value) {
+  if (!keyframes[frame]) {
+    keyframes[frame] = {};
+  }
+  keyframes[frame][property] = value;
+  updateKeyframeMarkers();
 }

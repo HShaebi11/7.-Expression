@@ -8,63 +8,54 @@
   </head>
   <body>
     <main>
-      <div id="canvas-container"></div>
-      <div id="controls">
-        <div class="input-container">
-          <label for="textInput">Text: </label>
-          <textarea id="textInput">Hello
+      <div class="app-container">
+        <div class="left-panel">
+          <div id="controls">
+            <div class="input-container">
+              <label for="textInput">Text: </label>
+              <textarea id="textInput">Hello
 World</textarea>
-        </div>
-        <div class="slider-container">
-          <label for="tilesX">Tiles X: <span id="tilesXValue">16</span></label>
-          <input type="range" id="tilesX" min="1" max="80" value="16" step="1">
-        </div>
-        <div class="slider-container">
-          <label for="tilesY">Tiles Y: <span id="tilesYValue">16</span></label>
-          <input type="range" id="tilesY" min="1" max="80" value="16" step="1">
-        </div>
-        <div class="slider-container">
-          <label for="speed">Speed: <span id="speedValue">0.005</span></label>
-          <input type="range" id="speed" min="0" max="1" value="0.005" step="0.01">
-        </div>
-        <div class="slider-container">
-          <label for="dispX">Displacement X: <span id="dispXValue">0.05</span></label>
-          <input type="range" id="dispX" min="0" max="0.1" value="0.05" step="0.001">
-        </div>
-        <div class="slider-container">
-          <label for="dispY">Displacement Y: <span id="dispYValue">0</span></label>
-          <input type="range" id="dispY" min="0" max="0.2" value="0" step="0.01">
-        </div>
-        <div class="slider-container">
-          <label for="offset">Offset: <span id="offsetValue">100</span></label>
-          <input type="range" id="offset" min="0" max="300" value="100" step="1">
-        </div>
-        <div class="slider-container">
-          <label for="textSize">Text Size: <span id="textSizeValue">400</span></label>
-          <input type="range" id="textSize" min="100" max="800" value="400" step="1">
-        </div>
-        <div class="slider-container">
-          <label for="lineHeight">Line Height: <span id="lineHeightValue">50</span></label>
-          <input type="range" id="lineHeight" min="20" max="200" value="50" step="1">
-        </div>
-        <div class="timeline-container">
-          <div class="timeline-controls">
-            <button id="playPause">Play</button>
-            <button id="addKeyframe">Add Keyframe</button>
-            <input type="number" id="frameInput" value="0" min="0">
-            <span>/ <span id="totalFrames">120</span></span>
-          </div>
-          <div class="keyframe-editor" id="keyframeEditor">
-            <label>Selected Keyframe: </label>
-            <input type="number" id="keyframePosition" min="0" max="120">
-            <button id="updateKeyframePosition">Update</button>
-          </div>
-          <div class="timeline">
-            <div id="timelineTrack"></div>
-            <div id="keyframeMarkers"></div>
-            <div id="playhead"></div>
+            </div>
+            <div class="slider-container">
+              <label for="tilesX">Tiles X: <span id="tilesXValue">16</span></label>
+              <input type="range" id="tilesX" min="1" max="80" value="16" step="1">
+            </div>
+            <div class="slider-container">
+              <label for="tilesY">Tiles Y: <span id="tilesYValue">16</span></label>
+              <input type="range" id="tilesY" min="1" max="80" value="16" step="1">
+            </div>
+            <div class="slider-container">
+              <label for="speed">Speed: <span id="speedValue">0.005</span></label>
+              <input type="range" id="speed" min="0" max="1" value="0.005" step="0.01">
+            </div>
+            <div class="slider-container">
+              <label for="dispX">Displacement X: <span id="dispXValue">0.05</span></label>
+              <input type="range" id="dispX" min="0" max="0.1" value="0.05" step="0.001">
+            </div>
+            <div class="slider-container">
+              <label for="dispY">Displacement Y: <span id="dispYValue">0</span></label>
+              <input type="range" id="dispY" min="0" max="0.2" value="0" step="0.01">
+            </div>
+            <div class="slider-container">
+              <label for="offset">Offset: <span id="offsetValue">100</span></label>
+              <input type="range" id="offset" min="0" max="300" value="100" step="1">
+            </div>
+            <div class="slider-container">
+              <label for="textSize">Text Size: <span id="textSizeValue">400</span></label>
+              <input type="range" id="textSize" min="100" max="800" value="400" step="1">
+            </div>
+            <div class="slider-container">
+              <label for="lineHeight">Line Height: <span id="lineHeightValue">50</span></label>
+              <input type="range" id="lineHeight" min="20" max="200" value="50" step="1">
+            </div>
           </div>
         </div>
+        <div class="right-panel">
+          <div id="canvas-container"></div>
+        </div>
+      </div>
+      <div class="bottom-panel">
+        <!-- Timeline will be inserted here -->
       </div>
     </main>
     <script src="sketch.js"></script>
