@@ -23,6 +23,10 @@ let keyframes = {};
 let playhead;
 let timelineTrack;
 let frameInput;
+let selectedKeyframes = new Set();
+let isDraggingKeyframe = false;
+let dragStartX = 0;
+let dragStartPositions = new Map(); // Stores initial positions of all selected keyframes
 
 function setup() {
   const canvas = createCanvas(400, 400);
@@ -71,16 +75,46 @@ function initTimeline() {
   
   // Timeline click handling
   timelineTrack.addEventListener('click', (e) => {
-    const rect = timelineTrack.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    currentFrame = Math.floor((x / rect.width) * totalFrames);
-    updatePlayhead();
+    if (!isDraggingKeyframe) {  // Only update if not dragging
+      const rect = timelineTrack.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      currentFrame = Math.floor((x / rect.width) * totalFrames);
+      updatePlayhead();
+    }
   });
   
   // Frame input handling
   frameInput.addEventListener('change', () => {
     currentFrame = parseInt(frameInput.value);
     updatePlayhead();
+  });
+
+  // Add keyframe drag handlers
+  const keyframeMarkers = document.getElementById('keyframeMarkers');
+  keyframeMarkers.addEventListener('mousedown', startDragKeyframe);
+  document.addEventListener('mousemove', dragKeyframe);
+  document.addEventListener('mouseup', stopDragKeyframe);
+
+  // Add shift-click support for multiple selection
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      deleteSelectedKeyframes();
+    }
+  });
+
+  // Add keyframe position editor functionality
+  const keyframePosition = document.getElementById('keyframePosition');
+  const updateKeyframePosition = document.getElementById('updateKeyframePosition');
+  const keyframeEditor = document.getElementById('keyframeEditor');
+
+  updateKeyframePosition.addEventListener('click', () => {
+    updateSelectedKeyframePosition(parseInt(keyframePosition.value));
+  });
+
+  keyframePosition.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      updateSelectedKeyframePosition(parseInt(keyframePosition.value));
+    }
   });
 }
 
@@ -102,12 +136,27 @@ function updatePlayhead() {
 
 function updateKeyframeMarkers() {
   const markers = document.getElementById('keyframeMarkers');
+  const keyframeEditor = document.getElementById('keyframeEditor');
+  const keyframePosition = document.getElementById('keyframePosition');
+  
   markers.innerHTML = '';
+  
+  // Update keyframe editor visibility and value
+  if (selectedKeyframes.size === 1) {
+    keyframeEditor.style.display = 'flex';
+    keyframePosition.value = Array.from(selectedKeyframes)[0];
+  } else {
+    keyframeEditor.style.display = 'none';
+  }
   
   Object.keys(keyframes).forEach(frame => {
     const marker = document.createElement('div');
     marker.className = 'keyframe-marker';
+    if (selectedKeyframes.has(parseInt(frame))) {
+      marker.classList.add('selected');
+    }
     marker.style.left = `${(frame / totalFrames) * 100}%`;
+    marker.dataset.frame = frame;
     markers.appendChild(marker);
   });
 }
@@ -189,6 +238,179 @@ function draw() {
       let dh = tileH;
 
       copy(pg, sx, sy, sw, sh, dx, dy, dw, dh);
+    }
+  }
+}
+
+function startDragKeyframe(e) {
+  if (e.target.classList.contains('keyframe-marker')) {
+    e.preventDefault();
+    isDraggingKeyframe = true;
+    const frame = parseInt(e.target.dataset.frame);
+    
+    // Handle multiple selection with shift key
+    if (!e.shiftKey) {
+      // If not holding shift, clear previous selection unless clicking on already selected keyframe
+      if (!selectedKeyframes.has(frame)) {
+        selectedKeyframes.clear();
+      }
+    }
+    
+    // Toggle selection of clicked keyframe
+    if (selectedKeyframes.has(frame)) {
+      if (e.shiftKey) {
+        selectedKeyframes.delete(frame);
+      }
+    } else {
+      selectedKeyframes.add(frame);
+    }
+    
+    // Store initial positions of all selected keyframes
+    dragStartPositions.clear();
+    const rect = timelineTrack.getBoundingClientRect();
+    dragStartX = e.clientX - rect.left;
+    
+    selectedKeyframes.forEach(frame => {
+      dragStartPositions.set(frame, frame);
+    });
+    
+    updateKeyframeMarkers();
+  }
+}
+
+function dragKeyframe(e) {
+  if (isDraggingKeyframe && selectedKeyframes.size > 0) {
+    e.preventDefault();
+    const rect = timelineTrack.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const deltaFrames = Math.floor((x - dragStartX) / rect.width * totalFrames);
+    
+    // Calculate new positions for all selected keyframes
+    const newPositions = new Map();
+    let isValidMove = true;
+    
+    dragStartPositions.forEach((startFrame, originalFrame) => {
+      const newFrame = Math.max(0, Math.min(startFrame + deltaFrames, totalFrames));
+      if (!selectedKeyframes.has(newFrame)) {
+        newPositions.set(originalFrame, newFrame);
+      } else {
+        isValidMove = false;
+      }
+    });
+    
+    // Apply movement if valid
+    if (isValidMove) {
+      const newKeyframes = {};
+      
+      // First, copy all non-selected keyframes
+      Object.entries(keyframes).forEach(([frame, values]) => {
+        if (!selectedKeyframes.has(parseInt(frame))) {
+          newKeyframes[frame] = values;
+        }
+      });
+      
+      // Then move selected keyframes to new positions
+      newPositions.forEach((newFrame, originalFrame) => {
+        newKeyframes[newFrame] = keyframes[originalFrame];
+      });
+      
+      keyframes = newKeyframes;
+      updateKeyframeMarkers();
+    }
+  }
+}
+
+function stopDragKeyframe(e) {
+  if (isDraggingKeyframe) {
+    e.preventDefault();
+    isDraggingKeyframe = false;
+    dragStartPositions.clear();
+    updateKeyframeMarkers();
+  }
+}
+
+function deleteSelectedKeyframes() {
+  selectedKeyframes.forEach(frame => {
+    delete keyframes[frame];
+  });
+  selectedKeyframes.clear();
+  updateKeyframeMarkers();
+}
+
+function showKeyframeMenu(e) {
+  if (e.target.classList.contains('keyframe-marker')) {
+    e.preventDefault();
+    const frame = parseInt(e.target.dataset.frame);
+    
+    // Remove existing menu if any
+    const oldMenu = document.getElementById('keyframeMenu');
+    if (oldMenu) oldMenu.remove();
+    
+    // Create context menu
+    const menu = document.createElement('div');
+    menu.id = 'keyframeMenu';
+    menu.className = 'keyframe-menu';
+    menu.style.left = `${e.clientX}px`;
+    menu.style.top = `${e.clientY}px`;
+    
+    // Add menu options
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit Values';
+    editBtn.onclick = () => editKeyframe(frame);
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.onclick = () => deleteKeyframe(frame);
+    
+    menu.appendChild(editBtn);
+    menu.appendChild(deleteBtn);
+    document.body.appendChild(menu);
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', closeKeyframeMenu);
+  }
+}
+
+function closeKeyframeMenu() {
+  const menu = document.getElementById('keyframeMenu');
+  if (menu) menu.remove();
+  document.removeEventListener('click', closeKeyframeMenu);
+}
+
+function editKeyframe(frame) {
+  // Load keyframe values into sliders
+  const values = keyframes[frame];
+  for (let prop in values) {
+    if (sliders[prop]) {
+      sliders[prop].value = values[prop];
+      document.getElementById(`${prop}Value`).textContent = values[prop];
+    }
+  }
+  currentFrame = frame;
+  updatePlayhead();
+  closeKeyframeMenu();
+}
+
+function deleteKeyframe(frame) {
+  delete keyframes[frame];
+  updateKeyframeMarkers();
+  closeKeyframeMenu();
+}
+
+function updateSelectedKeyframePosition(newPosition) {
+  if (selectedKeyframes.size === 1) {
+    const oldFrame = Array.from(selectedKeyframes)[0];
+    newPosition = Math.max(0, Math.min(newPosition, totalFrames));
+    
+    // Check if the new position is already occupied
+    if (!keyframes.hasOwnProperty(newPosition) || newPosition === oldFrame) {
+      keyframes[newPosition] = keyframes[oldFrame];
+      delete keyframes[oldFrame];
+      selectedKeyframes.clear();
+      selectedKeyframes.add(newPosition);
+      updateKeyframeMarkers();
+    } else {
+      alert('Position already occupied by another keyframe!');
     }
   }
 }

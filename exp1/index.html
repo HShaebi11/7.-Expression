@@ -54,6 +54,11 @@ World</textarea>
             <input type="number" id="frameInput" value="0" min="0">
             <span>/ <span id="totalFrames">120</span></span>
           </div>
+          <div class="keyframe-editor" id="keyframeEditor">
+            <label>Selected Keyframe: </label>
+            <input type="number" id="keyframePosition" min="0" max="120">
+            <button id="updateKeyframePosition">Update</button>
+          </div>
           <div class="timeline">
             <div id="timelineTrack"></div>
             <div id="keyframeMarkers"></div>
