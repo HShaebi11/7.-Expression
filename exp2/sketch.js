@@ -13,6 +13,8 @@ let textInput;
 let bgImage = null;
 let bgVideo = null;
 let isVideo = false;
+let textColor;
+let bgColor;
 
 // Store slider elements
 let sliders = {};
@@ -32,6 +34,21 @@ function setup() {
   // Replace image input listener with media input listener
   const mediaInput = document.getElementById('mediaInput');
   mediaInput.addEventListener('change', handleMediaUpload);
+  
+  // Initialize color pickers
+  textColor = color(255);  // Default white
+  bgColor = color(0);      // Default black
+  
+  const textColorPicker = document.getElementById('textColor');
+  const bgColorPicker = document.getElementById('bgColor');
+  
+  textColorPicker.addEventListener('input', function() {
+    textColor = color(this.value);
+  });
+  
+  bgColorPicker.addEventListener('input', function() {
+    bgColor = color(this.value);
+  });
 }
 
 function handleMediaUpload(event) {
@@ -74,10 +91,10 @@ function handleMediaUpload(event) {
 }
 
 function draw() {
-  background(0);
+  background(bgColor);
 
   // PGraphics
-  pg.background(0);
+  pg.background(bgColor);
   
   // Draw background media if available
   if (bgVideo && isVideo) {
@@ -94,8 +111,8 @@ function draw() {
     pg.pop();
   }
   
-  // Draw text
-  pg.fill(255);
+  // Draw text with selected color
+  pg.fill(textColor);
   pg.textSize(sliderValues.textSize);
   pg.push();
   pg.translate(width/2, height/2);

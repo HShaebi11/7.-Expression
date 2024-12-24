@@ -64,3 +64,29 @@ input[type="file"] {
   border: 1px solid #444;
   border-radius: 4px;
 }
+
+.color-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.color-container input[type="color"] {
+  width: 50px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
+.color-container input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-container input[type="color"]::-webkit-color-swatch {
+  border: 1px solid #444;
+  border-radius: 4px;
+}
