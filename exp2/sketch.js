@@ -19,14 +19,17 @@ let cameraButton;
 let cameraSelect;
 let textColor;
 let bgColor;
+let useCustomFont = true;
+let robotoFont;
 
 // Store slider elements
 let sliders = {};
 let sliderValues = {};
 
 function preload() {
-  // Load the variable font
+  // Load both fonts
   font = loadFont('EXPOSE-varVF.ttf');
+  robotoFont = loadFont('https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf');
 }
 
 function setup() {
@@ -34,8 +37,14 @@ function setup() {
   canvas.parent('canvas-container');
   pg = createGraphics(400, 400);
   
-  // Set the font for the graphics buffer
+  // Set initial font
   pg.textFont(font);
+  
+  // Add font toggle listener
+  const fontToggle = document.getElementById('useCustomFont');
+  fontToggle.addEventListener('change', function() {
+    useCustomFont = this.checked;
+  });
   
   // Initialize UI elements
   textInput = document.getElementById('textInput');
@@ -214,9 +223,24 @@ function draw() {
     pg.pop();
   }
   
-  // Draw text with selected color
+  // Update font settings before drawing text
+  let currentFont = useCustomFont ? font : robotoFont;
+  pg.textFont(currentFont);
+  
+  if (useCustomFont) {
+    // Custom font with variation settings
+    let fontCSS = `font-variation-settings: 'wght' ${sliderValues.fontWeight}`;
+    pg.drawingContext.font = `${sliderValues.fontSize}px EXPOSE-varVF`;
+    pg.drawingContext.fontVariationSettings = `'wght' ${sliderValues.fontWeight}`;
+  } else {
+    // Roboto font
+    pg.drawingContext.font = `${sliderValues.fontWeight} ${sliderValues.fontSize}px Roboto`;
+    pg.drawingContext.fontVariationSettings = '';  // Clear variation settings
+  }
+  
   pg.fill(textColor);
-  pg.textSize(sliderValues.textSize);
+  pg.textSize(sliderValues.fontSize);
+  
   pg.push();
   pg.translate(width/2, height/2);
   pg.textAlign(CENTER, CENTER);
@@ -278,8 +302,9 @@ function initSliders() {
     dispX: document.getElementById('dispX'),
     dispY: document.getElementById('dispY'),
     offset: document.getElementById('offset'),
-    textSize: document.getElementById('textSize'),
-    lineHeight: document.getElementById('lineHeight')
+    fontSize: document.getElementById('textSize'),
+    lineHeight: document.getElementById('lineHeight'),
+    fontWeight: document.getElementById('fontWeight')
   };
 
   // Add event listeners and initialize values

@@ -48,6 +48,10 @@ World</textarea>
           <label for="lineHeight">Line Height: <span id="lineHeightValue">50</span></label>
           <input type="range" id="lineHeight" min="20" max="200" value="50" step="1">
         </div>
+        <div class="slider-container">
+          <label for="fontWeight">Font Weight: <span id="fontWeightValue">400</span></label>
+          <input type="range" id="fontWeight" min="1" max="1000" value="400" step="1">
+        </div>
         <div class="input-container">
           <label for="imageInput">Background Image:</label>
           <input type="file" id="imageInput" accept="image/*">
@@ -73,6 +77,10 @@ World</textarea>
         <div class="color-container">
           <label for="bgColor">Background Color:</label>
           <input type="color" id="bgColor" value="#000000">
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="useCustomFont" checked>
+          <label for="useCustomFont">Use Custom Font</label>
         </div>
       </div>
       <div id="canvas-container"></div>
