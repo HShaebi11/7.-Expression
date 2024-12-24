@@ -47,6 +47,19 @@ World</textarea>
           <label for="lineHeight">Line Height: <span id="lineHeightValue">50</span></label>
           <input type="range" id="lineHeight" min="20" max="200" value="50" step="1">
         </div>
+        <div class="timeline-container">
+          <div class="timeline-controls">
+            <button id="playPause">Play</button>
+            <button id="addKeyframe">Add Keyframe</button>
+            <input type="number" id="frameInput" value="0" min="0">
+            <span>/ <span id="totalFrames">120</span></span>
+          </div>
+          <div class="timeline">
+            <div id="timelineTrack"></div>
+            <div id="keyframeMarkers"></div>
+            <div id="playhead"></div>
+          </div>
+        </div>
       </div>
     </main>
     <script src="sketch.js"></script>

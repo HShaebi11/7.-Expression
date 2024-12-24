@@ -62,3 +62,83 @@ textarea:focus {
   outline: none;
   border-color: #666;
 }
+
+.timeline-container {
+  margin-top: 20px;
+  padding: 10px;
+  background: #333;
+  border-radius: 4px;
+}
+
+.timeline-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.timeline-controls button {
+  padding: 5px 10px;
+  background: #444;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+.timeline-controls button:hover {
+  background: #555;
+}
+
+.timeline-controls input[type="number"] {
+  width: 60px;
+  padding: 5px;
+  background: #444;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: white;
+}
+
+.timeline {
+  position: relative;
+  height: 30px;
+  background: #222;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#timelineTrack {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#keyframeMarkers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+#playhead {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: red;
+  pointer-events: none;
+}
+
+.keyframe-marker {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  background: yellow;
+  border-radius: 50%;
+  cursor: pointer;
+}
