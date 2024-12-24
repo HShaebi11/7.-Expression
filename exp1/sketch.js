@@ -37,7 +37,17 @@ function draw() {
   pg.push();
   pg.translate(width/2, height/2);
   pg.textAlign(CENTER, CENTER);
-  pg.text(textInput.value, 0, 0);
+  
+  // Split text into lines and draw with line height
+  let lines = textInput.value.split('\n');
+  let totalHeight = (lines.length - 1) * sliderValues.lineHeight;
+  let startY = -totalHeight/2;
+  
+  for(let line of lines) {
+    pg.text(line, 0, startY);
+    startY += sliderValues.lineHeight;
+  }
+  
   pg.pop();
 
   let tilesX = sliderValues.tilesX;
@@ -85,7 +95,8 @@ function initSliders() {
     dispX: document.getElementById('dispX'),
     dispY: document.getElementById('dispY'),
     offset: document.getElementById('offset'),
-    textSize: document.getElementById('textSize')
+    textSize: document.getElementById('textSize'),
+    lineHeight: document.getElementById('lineHeight')
   };
 
   // Add event listeners and initialize values
