@@ -13,6 +13,8 @@ let font;
 let pg;
 
 let tX,tY,sp,dspx,dspy,fct;
+let textInput;
+let textSizeSlider;
 
 // function preload(){
 //   font = loadFont("data/RobotoMono-Regular.ttf");
@@ -23,23 +25,32 @@ function setup() {
   createCanvas(400, 400);
   createSliders();
   pg = createGraphics(400, 400);
-
+  
+  textInput = createInput('a');
+  textInput.position(340, height + 40);
+  createP('Text').position(340, height);
 }
 
 function draw() {
   background(0);
 
+  // Draw text input on canvas
+  fill(255);
+  textSize(12);
+  textAlign(LEFT);
+  text('Type any character:', 10, 20);
+  text('Current: ' + textInput.value().charAt(0), 120, 20);
 
   // PGraphics
 
   pg.background(0);
   pg.fill(255);
   // pg.textFont(font);
-  pg.textSize(400);
+  pg.textSize(textSizeSlider.value());
   pg.push();
   pg.translate(width/2, height/2);
   pg.textAlign(CENTER, CENTER);
-  pg.text("a", 0, 0);
+  pg.text(textInput.value().charAt(0), 0, 0);
   pg.pop();
 
 
@@ -112,5 +123,8 @@ function createSliders(){
   fct.position(180, height + 160);
   createP('Offset').position(180, height+120);
 
-
+  // Add text size slider
+  textSizeSlider = createSlider(100, 800, 400, 1);
+  textSizeSlider.position(340, height + 160);
+  createP('Text Size').position(340, height + 120);
 }
