@@ -1,7 +1,63 @@
 html, body {
   margin: 0;
-  padding: 0;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  background: #1a1a1a;
+  color: white;
+  font-family: Arial, sans-serif;
 }
 canvas {
   display: block;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+#controls {
+  width: 400px;
+  padding: 20px;
+  background: #2a2a2a;
+  border-radius: 8px;
+}
+
+.slider-container {
+  margin: 15px 0;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+input[type="range"] {
+  width: 100%;
+  margin: 5px 0;
+}
+
+.input-container {
+  margin: 15px 0;
+}
+
+textarea {
+  padding: 10px;
+  font-size: 16px;
+  width: 200px;
+  height: 100px;
+  text-align: center;
+  background: #333;
+  color: white;
+  border: 1px solid #444;
+  border-radius: 4px;
+  resize: vertical;
+  font-family: Arial, sans-serif;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #666;
 }
