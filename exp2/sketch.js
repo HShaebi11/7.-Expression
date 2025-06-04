@@ -35,6 +35,7 @@ function preload() {
 function setup() {
   const canvas = createCanvas(400, 400);
   canvas.parent('canvas-container');
+  pixelDensity(1);
   pg = createGraphics(400, 400);
   
   // Set initial font
